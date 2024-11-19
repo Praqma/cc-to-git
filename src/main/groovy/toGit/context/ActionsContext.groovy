@@ -29,13 +29,19 @@ class ActionsContext implements Context, HasActions {
         actions.add(new Action() {
             @Override
             void act(HashMap<String, Object> extractionMap) {
-                def sourceDir = new File(source)
-                def targetDir = new File(target)
+                def expandedSource = new SimpleTemplateEngine().createTemplate(source).make(extractionMap).toString()
+                def expandedTarget = new SimpleTemplateEngine().createTemplate(target).make(extractionMap).toString()
+                def sourceDir = new File(expandedSource)
+                if (! sourceDir.exists() ) throw new Exception ("ERROR: Source directory:" + sourceDir + " does not exist")
+                def targetDir = new File(expandedTarget)
+                if (! targetDir.exists() ) throw new Exception ("ERROR: Target directory:" + targetDir + " does not exist")
+                log.info ("Copy from: $expandedSource")
+                log.info ("To - perserving dates: $expandedTarget")
                 sourceDir.listFiles().each { file ->
                     if (file.isDirectory())
                         FileUtils.copyDirectoryToDirectory(file, targetDir)
                     else
-                        FileUtils.copyFileToDirectory(file, targetDir)
+                        FileUtils.copyFileToDirectory(file, targetDir, true )
                 }
             }
         })
@@ -89,6 +95,7 @@ class ActionsContext implements Context, HasActions {
             @Override
             void act(HashMap<String, Object> extractionMap) {
                 def expandedCommand = new SimpleTemplateEngine().createTemplate(command).make(extractionMap).toString()
+                log.info(expandedCommand)
                 CommandLine.newInstance().run(expandedCommand, path ? new File(path) : null).stdoutBuffer.eachLine { line ->
                     log.info(line)
                 }

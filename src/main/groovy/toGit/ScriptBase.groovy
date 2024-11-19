@@ -10,6 +10,7 @@ import toGit.migration.MigrationManager
 import toGit.migration.sources.MigrationSource
 import toGit.migration.sources.ccbase.context.ClearCaseSourceContext
 import toGit.migration.sources.ccucm.context.CcucmSourceContext
+import toGit.migration.sources.ccm.CCMSourceContext
 import toGit.migration.sources.dummy.DummySourceContext
 import toGit.migration.targets.MigrationTarget
 import toGit.migration.targets.artifactory.context.ArtifactoryTargetContext
@@ -30,6 +31,7 @@ abstract class ScriptBase extends Script implements Context {
     final Map<String, Class> sourceTypes = [
             'dummy': DummySourceContext,
             'ccucm': CcucmSourceContext,
+            'ccm': CCMSourceContext,
             'clearcase': ClearCaseSourceContext,
     ]
 

@@ -19,9 +19,14 @@ class Setup extends Action {
 
     @Override
     void act(HashMap<String, Object> extractionMap) {
-        log.info("Initializing Git repository")
-        GitUtil.initRepository(path)
-        GitUtil.configureRepository(path, options)
-        log.info("Initialized Git repository")
+        if (!path.exists()) {
+            log.info("Initializing Git repository in $path")
+            GitUtil.initRepository(path)
+            GitUtil.configureRepository(path, options)
+            GitUtil.initCommit(path)
+            log.info("Initialized Git repository")
+        } else {
+            log.info("Git repository already exists in $path")
+        }
     }
 }

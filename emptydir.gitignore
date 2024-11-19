@@ -1,0 +1,4 @@
+# Ignore everything - added in CM/synergy to git migration as it was an empty directory
+*
+# except .gitignore
+!.gitignore

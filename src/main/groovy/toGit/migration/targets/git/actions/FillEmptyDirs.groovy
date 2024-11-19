@@ -1,6 +1,7 @@
 package toGit.migration.targets.git.actions
 
 import org.slf4j.LoggerFactory
+import org.apache.commons.io.FileUtils
 import toGit.migration.plan.Action
 
 class FillEmptyDirs extends Action {
@@ -27,8 +28,8 @@ class FillEmptyDirs extends Action {
             if(contents.any()) {
                 sprinkleDummies(subDir)
             } else {
-                new File(subDir, ".dummy").createNewFile()
-                log.info("Dropped .dummy file in $subDir")
+                FileUtils.copyFileToDirectory(new File(System.getProperty("user.dir") + File.separator + "emptydir.gitignore"), targetDir)
+                log.info("Dropped .gitignore file in $subDir")
             }
         }
     }

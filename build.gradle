@@ -6,16 +6,20 @@ repositories {
     mavenCentral()
     jcenter()
     maven {
-        url 'http://code.praqma.net/repo/maven/'
+        url 'https://repo.jenkins-ci.org/public/'
     }
 }
 
 dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.4.4'
     compile 'org.slf4j:slf4j-api:1.7.21'
-    compile 'net.praqma:cool:0.6.48'
+//    compile 'net.praqma:cool:0.6.48'
     compile('org.jfrog.artifactory.client:artifactory-java-client-services:1.2.2'){
         exclude group: 'org.codehaus.groovy'
+
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile "net.praqma:praqmajutils:1.0.0"
+
     }
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
 }
