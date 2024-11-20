@@ -45,7 +45,8 @@ class AlreadyConverted extends Criteria {
 
     @Override
     boolean appliesTo(Snapshot snapshot) {
-        def snapshotRevision = snapshot.identifier.split("@@@")[0].split("~")[1].split(":")[0]
+        log.info ("Entering (ccm2git) appliesTo")
+        def snapshotRevision = snapshot.identifier.split("@@@")[0].split( System.getenv("ccm_delim") )[1].split(":")[0]
 
         def tag_regex = snapshotRevision.replace('+','\\+') + "_" + "[dprtis][eueenq][lblsta]\$"
 

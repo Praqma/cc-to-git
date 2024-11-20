@@ -99,7 +99,7 @@ class CCMSource implements MigrationSource {
                 file_tmp.deleteDir()
             }
 
-            def file_full_path_spaced_name = new File ("${path_final}/" + ccmSnapshotThis.split(snapshot.ccm_delimiter)[0])
+            def file_full_path_spaced_name = new File ("${path_final}/" + ccmSnapshotThis.split( System.getenv("ccm_delim") )[0])
             if ( file_full_path_spaced_name.exists() ) {
                 log.info file_full_path_spaced_name.toString() + " exist due to previous error - Delete it all"
                 def file_base = new File (path_final)
