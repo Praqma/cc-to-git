@@ -11,6 +11,8 @@ gradle-app.setting
 
 # Output
 out/
+build/
+output/
 
 # Jekyll
 _site
