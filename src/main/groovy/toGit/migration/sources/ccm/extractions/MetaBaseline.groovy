@@ -21,18 +21,20 @@ class MetaBaseline extends Extraction {
     HashMap<String, Object> extract(Snapshot snapshot ) {
         def result = [:]
 
+        def ccm_delimiter = System.getenv("ccm_delim") 
+
         def gitSnapshotThis = snapshot.identifier.split("@@@")[0]
         def gitSnapshotBaseline = snapshot.identifier.split("@@@")[1]
-        def gitSnapshotName = gitSnapshotThis.split("~")[0]
-        def gitSnapshotRevision = gitSnapshotThis.split("~")[1].split(":")[0]
-        def gitSnapshotInstance = gitSnapshotThis.split("~")[1].split(":")[2]
-        def gitBaselineRevision = gitSnapshotBaseline.split("~")[1].split(":")[0]
-        def gitBaselineInstance = gitSnapshotBaseline.split("~")[1].split(":")[2]
+        def gitSnapshotName = gitSnapshotThis.split( ccm_delimiter )[0]
+        def gitSnapshotRevision = gitSnapshotThis.split( ccm_delimiter )[1].split(":")[0]
+        def gitSnapshotInstance = gitSnapshotThis.split( ccm_delimiter )[1].split(":")[2]
+        def gitBaselineRevision = gitSnapshotBaseline.split( ccm_delimiter )[1].split(":")[0]
+        def gitBaselineInstance = gitSnapshotBaseline.split( ccm_delimiter )[1].split(":")[2]
 
         def ccmSnapshotThis = snapshot.identifier.split("@@@")[2]
         def ccmSnapshotBaseline = snapshot.identifier.split("@@@")[3]
-        def ccmSnapshotRevision = ccmSnapshotThis.split("~")[1].split(":")[0]
-        def ccmSnapshotInstance = ccmSnapshotThis.split("~")[1].split(":")[2]
+        def ccmSnapshotRevision = ccmSnapshotThis.split( ccm_delimiter )[1].split(":")[0]
+        def ccmSnapshotInstance = ccmSnapshotThis.split( ccm_delimiter )[1].split(":")[2]
 
         result['gitSnapshot'] = gitSnapshotThis
         result['gitSnapshotName'] = gitSnapshotName
