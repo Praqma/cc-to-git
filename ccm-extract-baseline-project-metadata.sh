@@ -20,22 +20,22 @@ repo_convert_type=${BASH_REMATCH[3]}
 repo_convert_instance=${BASH_REMATCH[4]}
 
 
-[[ -z $2 ]] && ( echo "Please set parameter 2 to Jira Project Key - exit 1" >&2 && exit 1 )
+[[ -z ${2:-} ]] && ( echo "Please set parameter 2 to Jira Project Key - exit 1" >&2 && exit 1 )
 jira_project_key=$2
 
-[[ -z $3 ]] && ( echo "Please set parameter 3 to 'commit' or 'tag' - exit 1" >&2 && exit 1 )
+[[ -z ${3:-} ]] && ( echo "Please set parameter 3 to 'commit' or 'tag' - exit 1" >&2 && exit 1 )
 target_type=$3
 
 jira_task_to_jira_issue_base=9000000
 
 if [[ $target_type == "tag" ]] ; then
-    extract_data_epic_level="true"
+    extract_data_epic_level="false"
     extract_data_story_level="true"
     extract_data_ccm_task_level="false"
     extract_data_ccm_task_handle_dirtytasks_separately="false"
     extract_data_ccm_task_verbosed_level="false"
 elif [[ $target_type == "commit" ]] ; then
-    extract_data_epic_level="true"
+    extract_data_epic_level="false"
     extract_data_story_level="true"
     extract_data_ccm_task_level="true"
     extract_data_ccm_task_handle_dirtytasks_separately="false"
@@ -66,8 +66,12 @@ case ${ccm_current_db} in
         require_baseline_object="false"
         ;;
     *)
-        echo "Undetermined/supported: ccm_current_db: ${ccm_current_db}" >&2
-        exit 1
+        story_level_header="Implementation Change Requests"
+        story_level_release_attr="release"
+        require_baseline_object="false"
+        ;;
+  #      echo "Undetermined/supported: ccm_current_db: ${ccm_current_db}" >&2
+ #       exit 1
 esac
 
 test "${ccm_project_name}x" == "x"      && ( echo "'ccm_project_name' not set - exit"    >&2   && exit 1 )
@@ -97,20 +101,20 @@ function handle_task_attrs {
     fi
 }
 exit_code="0"
-find_n_set_baseline_obj_attrs_from_project "${ccm_project_name}~${repo_convert_rev_tag}:project:${repo_convert_instance}" "verbose_false" || exit_code=$?
+find_n_set_baseline_obj_attrs_from_project "${ccm_project_name}${ccm_delim}${repo_convert_rev_tag}:project:${repo_convert_instance}" "verbose_false" || exit_code=$?
 if [[ "${exit_code}" != "0" ]] ; then
-    echo "ERROR: Project not found: ${ccm_project_name}~${repo_convert_rev_tag}:project:${repo_convert_instance}" >&2
+    echo "ERROR: Project not found: ${ccm_project_name}${ccm_delim}${repo_convert_rev_tag}:project:${repo_convert_instance}" >&2
     exit ${exit_code}
 fi
 
 if [[ "${ccm_baseline_obj:-}" != "" ]]; then
-    objectname="${ccm_project_name}~${repo_convert_rev_tag}:project:${repo_convert_instance}"
+    objectname="${ccm_project_name}${ccm_delim}${repo_convert_rev_tag}:project:${repo_convert_instance}"
     printf "Project: ${objectname} <-> Baseline object: ${ccm_baseline_obj}\n\n"                 >> ${output_file}
     ccm baseline -show info "${ccm_baseline_obj}" -f " Build: %build\n Description: %description\n Release: %release\n Purpose: %purpose\n"                     >> ${output_file}
 
     ccm baseline -show projects "${ccm_baseline_obj}" -f "%objectname %release %owner %{create_time[dateformat='yyyy-MM-dd HH:MM:SS']} Baseline: -> %baseline"  >> ${output_file}
 
-    printf "\nAll baseline objects related to project: ${ccm_project_name}~${repo_convert_rev_tag}:project:${repo_convert_instance}\n"                           >> ${output_file}
+    printf "\nAll baseline objects related to project: ${ccm_project_name}${ccm_delim}${repo_convert_rev_tag}:project:${repo_convert_instance}\n"                           >> ${output_file}
     ccm query "has_project_in_baseline('${objectname}')" \
                                                                                                         -sby create_time -f "%objectname %release %create_time" >> ${output_file}
     echo >> ${output_file}
@@ -183,7 +187,7 @@ if [[ "${ccm_baseline_obj:-}" != "" ]]; then
 
 else
     [[ "${require_baseline_object}" == "true" ]] && ( echo "ERROR: It is expected to have a baseline object due to configuration: require_baseline_object=true for this database: ${ccm_current_db}" >&2 && exit 2 )
-    objectname="${ccm_project_name}~${repo_convert_rev_tag}:project:${repo_convert_instance}"
+    objectname="${ccm_project_name}${ccm_delim}${repo_convert_rev_tag}:project:${repo_convert_instance}"
 
     printf "Project: ${objectname} <-> Baseline object: NONE\n\n"                                >> ${output_file}
 
@@ -191,17 +195,19 @@ else
     ccm query "is_baseline_project_of('${objectname}')" -f "%displayname"  >> ${output_file} || echo "  <none>" >> ${output_file}
     echo >> ${output_file}
 
-    echo "${epic_level_header}:"                                     >> ${output_file}
-    ccm query "has_${epic_level_epic2story_relation}(has_associated_task(is_task_in_folder_of(is_folder_in_rp_of('${objectname}'))))" -f "${jira_project_key}-%problem_number %resolver %release %problem_synopsis" >> ${output_file}  || echo "<none>" >> ${output_file}
+    if [[ ${epic_level_header:-} != "" ]]; then 
+        echo "${epic_level_header}:"                                     >> ${output_file}
+        ccm query "has_${epic_level_epic2story_relation}(has_associated_task(is_task_in_folder_of(is_folder_in_rp_of('${objectname}'))))" -f "${jira_project_key}-%problem_number %resolver %release %problem_synopsis" >> ${output_file}  || echo "<none>" >> ${output_file}
 
-    echo >> ${output_file}
+        echo >> ${output_file}
+    fi 
 
     echo "Related/Integrated ${story_level_header}:"   >> ${output_file}
     ccm query "has_associated_task(is_task_in_folder_of(is_folder_in_rp_of('${objectname}')))" -f "${jira_project_key}-%problem_number%resolver %release %problem_synopsis"  >> ${output_file}  || echo "<none>" >> ${output_file}
 
     echo >> ${output_file}
     echo "Tasks integrated in project:"                              >> ${output_file}
-    ccm query "is_task_in_folder_of(is_folder_in_rp_of('${objectname}'))" -f "%displayname %{create_time[dateformat='yyyy-M-dd HH:MM:SS']} %resolver %status %release %task_synopsis"  >> ${output_file} || echo "<none>" >> ${output_file}
+    #ccm query "is_task_in_folder_of(is_folder_in_rp_of('${objectname}'))" -f "%displayname %{create_time[dateformat='yyyy-M-dd HH:MM:SS']} %resolver %status %release %task_synopsis"  >> ${output_file} || echo "<none>" >> ${output_file}
     IFS=$'\n\r'
     loop_number=1
     for task_number_attrs in $(ccm query "status!='task_automatic' and (is_task_in_folder_of(is_folder_in_rp_of('${objectname}')) or is_task_in_rp_of('${objectname}'))" -u -f "%objectname@@@%task_number@@@%{create_time[dateformat='yyyy-MM-dd HH:MM:SS']}@@@%resolver@@@%status@@@%release" | tail -n +2) ; do

@@ -6,7 +6,14 @@ import org.slf4j.LoggerFactory
 
 final log = LoggerFactory.getLogger(this.class)
 
-def ccm_delimiter='~'
+if ( !System.getenv("ccm_delim") ){
+    println "ccm_delim variable not set"
+    System.exit(1)
+else {
+    println "ccm_delim: " + System.getenv("ccm_delim")
+    ccm_delimiter = System.getenv("ccm_delim")
+}
+
 
 def ccm_project
 def ccm_revision
@@ -14,7 +21,7 @@ def ccm_name4part
 def ccm_instance
 if ( !start_project?.trim() || !start_project.contains(':') || !start_project.contains(ccm_delimiter) ) {
     println "start_project not set correctly \n" +
-            "Provide the start_project=<projectname>~<revision>:project:<instance>"
+            "Provide the start_project=<projectname>" + ccm_delimiter + "<revision>:project:<instance>"
     System.exit(1)
 } else {
     ccm_name4part = start_project.trim()
@@ -28,16 +35,16 @@ if ( !start_project?.trim() || !start_project.contains(':') || !start_project.co
     }
     if ( !ccm_revision || ccm_revision.contains(':') || ccm_revision.contains('~') ) {
         println "ccm_revision contains ':' \n" +
-                "Provide the start_project=<projectname>~<revision>:project:<instance>"
+                "Provide the start_project=<projectname>" + ccm_delimiter + "<revision>:project:<instance>"
         System.exit(1)
     }
     if ( !ccm_instance || ccm_instance.contains(':') || ccm_instance.contains('~') ) {
         println "ccm_instance contains ':' or '~' \n" +
-                "Provide the start_project=<projectname>~<revision>:project:<instance>"
+                "Provide the start_project=<projectname>" + ccm_delimiter + "<revision>:project:<instance>"
         System.exit(1)
     }
     if ( !ccm_name4part.contains(':') || !ccm_name4part.contains(ccm_delimiter) ) {
-        println "Provide the start_project=<projectname>~<revision>:project:<instance>"
+        println "Provide the start_project=<projectname>" + ccm_delimiter + "<revision>:project:<instance>"
         System.exit(1)
     }
 }
@@ -75,6 +82,7 @@ if ( !git_server_path ){
     git_server_path_this = git_server_path
 }
 
+
 def jira_project_key_this
 if ( !jiraProjectKey ) {
     println "Please set jiraProjectKey variable\n"
@@ -103,7 +111,7 @@ source('ccm') {
 target('git', repository_name) {
     workspace "${my_workspace}/repo/" + ccm_project
     user 'Claus Schneider(Eficode)'
-    email 'claus.schneider@eficode.com'
+    email 'claus.schneider.ext@safrangroup.com'
     remote "ssh://git@${git_server_path_this}/${ccm_project}.git"
     longPaths true
     ignore ""
@@ -143,7 +151,7 @@ migrate {
                 }
 
                 // Copy checked out into Git repository
-                copy("$source.workspace/code/\${gitSnapshotName}~\${gitSnapshotRevision}/\$gitSnapshotName", target.workspace)
+                copy("$source.workspace/code/\${gitSnapshotName}" + System.getenv("ccm_delim") + "\${gitSnapshotRevision}/\$gitSnapshotName", target.workspace)
 
                 custom {
                     log.info "First level files in: $target.workspace"
@@ -236,7 +244,7 @@ migrate {
                     }
                 }
                 cmd 'git reset --hard -q HEAD', target.workspace
-                cmd 'diff -r -q -x ".gitignore" -x ".gitattributes" -x ".gitmodules" -x ".git" . ' + source.workspace + '/code/${gitSnapshotName}~${gitSnapshotRevision}/${gitSnapshotName}', target.workspace
+                cmd 'diff -r -q -x ".gitignore" -x ".gitattributes" -x ".gitmodules" -x ".git" . ' + source.workspace + '/code/${gitSnapshotName}-${gitSnapshotRevision}/${gitSnapshotName}', target.workspace
 
                 // The file for tag info is generated during MetaDataExtraction
                 custom { project ->
@@ -279,8 +287,8 @@ migrate {
                     }
                 }
 
-                cmd 'du -sBM .git > ../${gitSnapshotName}~${gitSnapshotRevision}@git_size.txt', target.workspace
-                cmd 'cat ../${gitSnapshotName}~${gitSnapshotRevision}@git_size.txt', target.workspace
+                cmd 'du -sBM .git > ../${gitSnapshotName}' + System.getenv("ccm_delim") + '${gitSnapshotRevision}@git_size.txt', target.workspace
+                cmd 'cat ../${gitSnapshotName}' + System.getenv("ccm_delim") + '${gitSnapshotRevision}@git_size.txt', target.workspace
 
             }
         }

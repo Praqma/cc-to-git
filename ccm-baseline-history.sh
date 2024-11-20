@@ -15,9 +15,9 @@ find_project_baseline_to_convert(){
     local inherited_string_local=$2
 
     if [[ "${use_wildcard}" == "*" ]]; then
-        proj_name=$(printf "${CURRENT_PROJECT}"  | awk -F"~|:" '{print $1}')
-        proj_version=$(printf "${CURRENT_PROJECT}"  | awk -F"~|:" '{print $2}')
-        proj_instance=$(printf "${CURRENT_PROJECT}"  | awk -F"~|:" '{print $4}')
+        proj_name=$(printf "${CURRENT_PROJECT}"  | awk -F"${ccm_delim}|:" '{print $1}')
+        proj_version=$(printf "${CURRENT_PROJECT}"  | awk -F"${ccm_delim}|:" '{print $2}')
+        proj_instance=$(printf "${CURRENT_PROJECT}"  | awk -F"${ccm_delim}|:" '{print $4}')
         query="has_baseline_project(name match '${proj_name}*' and version='${proj_version}' and type='project' and instance='${proj_instance}') and ( status='integrate' or status='test' or status='sqa' or status='released' )"
     else
         [[ ${CURRENT_PROJECT:-} =~ ${regex_ccm4part} ]] || {
@@ -132,11 +132,11 @@ checked_version=$(ccm properties -f %version "$ccm_BASELINE_PROJECT" ) || {
   exit $exit_code
 }
 
-init_project_name=$(printf "${ccm_BASELINE_PROJECT}" | awk -F"~" '{print $1}')
-instance=$(printf "${ccm_BASELINE_PROJECT}" | awk -F"~|:" '{print $4}' )
+init_project_name=$(printf "${ccm_BASELINE_PROJECT}" | awk -F"${ccm_delim}" '{print $1}')
+instance=$(printf "${ccm_BASELINE_PROJECT}" | awk -F"${ccm_delim}|:" '{print $4}' )
 
 inherited_string="${ccm_BASELINE_PROJECT}"
-echo "$git_BASELINE_PROJECT@@@${init_project_name}~init:project:${instance}@@@$ccm_BASELINE_PROJECT@@@${init_project_name}~init:project:${instance}" > ${projects_file}
+echo "$git_BASELINE_PROJECT@@@${init_project_name}${ccm_delim}init:project:${instance}@@@$ccm_BASELINE_PROJECT@@@${init_project_name}${ccm_delim}init:project:${instance}" > ${projects_file}
 
 find_project_baseline_to_convert "${ccm_BASELINE_PROJECT}" "${inherited_string}"
 cat ${projects_file}

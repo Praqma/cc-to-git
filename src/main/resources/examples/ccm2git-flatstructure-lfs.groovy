@@ -14,7 +14,7 @@ def ccm_name4part
 def ccm_instance
 if ( !start_project?.trim() || !start_project.contains(':') || !start_project.contains(ccm_delimiter) ) {
     println "start_project not set correctly \n" +
-            "Provide the start_project=<projectname>~<revision>:project:<instance>"
+            "Provide the start_project=<projectname>" + ccm_delimiter + "<revision>:project:<instance>"
     System.exit(1)
 } else {
     ccm_name4part = start_project.trim()
@@ -28,16 +28,16 @@ if ( !start_project?.trim() || !start_project.contains(':') || !start_project.co
     }
     if ( !ccm_revision || ccm_revision.contains(':') || ccm_revision.contains('~') ) {
         println "ccm_revision contains ':' \n" +
-                "Provide the start_project=<projectname>~<revision>:project:<instance>"
+                "Provide the start_project=<projectname>" + ccm_delimiter + "<revision>:project:<instance>"
         System.exit(1)
     }
     if ( !ccm_instance || ccm_instance.contains(':') || ccm_instance.contains('~') ) {
         println "ccm_instance contains ':' or '~' \n" +
-                "Provide the start_project=<projectname>~<revision>:project:<instance>"
+                "Provide the start_project=<projectname>" + ccm_delimiter + "<revision>:project:<instance>"
         System.exit(1)
     }
     if ( !ccm_name4part.contains(':') || !ccm_name4part.contains(ccm_delimiter) ) {
-        println "Provide the start_project=<projectname>~<revision>:project:<instance>"
+        println "Provide the start_project=<projectname>" + ccm_delimiter + "<revision>:project:<instance>"
         System.exit(1)
     }
 }
@@ -102,8 +102,8 @@ source('ccm') {
 
 target('git', repository_name) {
     workspace "${my_workspace}/repo/" + ccm_project
-    user 'Claus Schneider(Praqma)'
-    email 'claus.schneider-ext@man-es.com'
+    user 'Claus Schneider(Eficode)'
+    email 'claus.schneider.ext@safrangroup.com'
     remote "ssh://git@${git_server_path_this}/${ccm_project}.git"
     longPaths true
     ignore ""
@@ -144,7 +144,7 @@ migrate {
                 }
 
                 // Copy checked out into Git repository
-                copy("$source.workspace/code/\${snapshotName}~\${snapshotRevision}/\$snapshotName", target.workspace)
+                copy("$source.workspace/code/\${snapshotName}-\${snapshotRevision}/\$snapshotName", target.workspace)
 
                 custom {
                     log.info "First level files in: $target.workspace"
@@ -257,8 +257,8 @@ migrate {
                     }
                 }
 
-                cmd 'du -sBM .git > ../${snapshotName}~${snapshotRevision}@git_size.txt', target.workspace
-                cmd 'cat ../${snapshotName}~${snapshotRevision}@git_size.txt', target.workspace
+                cmd 'du -sBM .git > ../${snapshotName}-${snapshotRevision}@git_size.txt', target.workspace
+                cmd 'cat ../${snapshotName}-${snapshotRevision}@git_size.txt', target.workspace
             }
         }
     }

@@ -102,7 +102,7 @@ function convert_revision(){
     local ccm_repo_convert_rev_tag=${repo_convert_rev_tag:: -4}
 
     local exit_code="0"
-    git_4part="${repo_name}~${ccm_repo_convert_rev_tag}:project:${project_instance}"
+    git_4part="${repo_name}${ccm_delim}${ccm_repo_convert_rev_tag}:project:${project_instance}"
 
     ccm_4part=""
     byref_translate_from_git_repo_4part2ccm_4part "${git_4part}" ccm_4part
@@ -208,7 +208,7 @@ function convert_revision(){
         done
     else
         # we do not have the 'content' tag available - investigate its history if it exists ( e.g. missing in repo )
-        ./ccm-baseline-history-get-root.sh "${ccm_name}~${ccm_repo_convert_rev_tag}:project:${project_instance}"
+        ./ccm-baseline-history-get-root.sh "${ccm_name}${ccm_delim}${ccm_repo_convert_rev_tag}:project:${project_instance}"
         exit 1
     fi
 
@@ -282,8 +282,7 @@ function convert_revision(){
     IFS=$'\n\r'
     for ccm_submodule4part in ${ccm_submodules4part} ; do
         set +x
-        regex_4part='^(.+)~(.+):(.+):(.+)$'
-        [[ ${ccm_submodule4part} =~ ${regex_4part} ]] || exit 1
+        [[ ${ccm_submodule4part} =~ ${regex_ccm4part} ]] || exit 1
         local ccm_submodule_name=${BASH_REMATCH[1]}
         local ccm_submodule_rev=${BASH_REMATCH[2]}
         local ccm_submodule_inst=${BASH_REMATCH[4]}
@@ -317,13 +316,13 @@ function convert_revision(){
           }
           if [[ "${shared_config_file:-}" != "" ]]; then
             echo "[INFO]: shared_config.txt found in the git tag ${repo_convert_rev_tag}"
-            if ! git cat-file -p ${repo_convert_rev_tag}:$(git ls-tree -r --name-only ${repo_convert_rev_tag} | grep '^.*/shared_config.txt$' ) | grep -E "^${ccm_submodule_name}~.+$|^\.\.\\\\(.+\\\\)*${ccm_submodule_name}~.+$" ; then
+            if ! git cat-file -p ${repo_convert_rev_tag}:$(git ls-tree -r --name-only ${repo_convert_rev_tag} | grep '^.*/shared_config.txt$' ) | grep -E "^${ccm_submodule_name}${ccm_delim}.+$|^\.\.\\\\(.+\\\\)*${ccm_submodule_name}${ccm_delim}.+$" ; then
               echo "WARNING: The submodule is not to be found in shared_config_file - fall-back to default"
               _path_from_shared_config_file="."
             else
               # The submodule reference found in shared_config file - convert to unix slashes
               _path_from_shared_config_file=$(dirname $(git cat-file -p ${repo_convert_rev_tag}:$(git ls-tree -r --name-only ${repo_convert_rev_tag} | grep '^.*/shared_config.txt$') \
-                                              | grep -E "^${ccm_submodule_name}~.+$|^\.\.\\\\(.+\\\\)*${ccm_submodule_name}~.+$" | sed -e 's/\\/\//g'))
+                                              | grep -E "^${ccm_submodule_name}${ccm_delim}.+$|^\.\.\\\\(.+\\\\)*${ccm_submodule_name}${ccm_delim}.+$" | sed -e 's/\\/\//g'))
             fi
             if [[ ${_path_from_shared_config_file} == "${ccm_submodule_name}" || ${_path_from_shared_config_file} == "." ]]; then
               echo "The path was not explicitly specified in the shared_config file or module not found - add it to the dir of the shared_config.txt"
@@ -339,7 +338,7 @@ function convert_revision(){
             git_submodule_path=${repo_submodule}
           fi
         else
-          git_submodule_path_in_project=$(ccm finduse -p "${ccm_submodule4part}" | grep "^[[:space:]]" | grep -v '[[:space:]]Projects:' | grep "${ccm_submodule4part//:project:1/''}" | sed -e 's/\t//g' | sed -e 's/\\/\//g' | grep -e "^.*@${ccm_4part//:project:1/''}"'$' | awk -F '~' '{print $1}'  | sed -e "s/^${repo_name}/./g"  | sed -e "s/\/${repo_submodule}//")
+          git_submodule_path_in_project=$(ccm finduse -p "${ccm_submodule4part}" | grep "^[[:space:]]" | grep -v '[[:space:]]Projects:' | grep "${ccm_submodule4part//:project:1/''}" | sed -e 's/\t//g' | sed -e 's/\\/\//g' | grep -e "^.*@${ccm_4part//:project:1/''}"'$' | awk -F "${ccm_delim}" '{print $1}'  | sed -e "s/^${repo_name}/./g"  | sed -e "s/\/${repo_submodule}//")
           git_submodule_path=${git_submodule_path_in_project}/${repo_submodule}
         fi
         [[ ${git_submodule_path:-} == "" ]] && ( echo "submodule path is empty - exit 1" && exit 1 )

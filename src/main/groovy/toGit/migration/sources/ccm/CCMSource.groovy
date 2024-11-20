@@ -22,7 +22,6 @@ class CCMSource implements MigrationSource {
     String system_path
     String jiraProjectKey
 
-
     @Override
     List<Snapshot> getSnapshots(List<Criteria> initialFilter) {
 
@@ -65,14 +64,14 @@ class CCMSource implements MigrationSource {
     private void copy2Filesystem(Snapshot snapshot) {
         def gitSnapshotThis = snapshot.identifier.split("@@@")[0]
         def gitSnapshotBaseline = snapshot.identifier.split("@@@")[1]
-        def gitSnapshotName = gitSnapshotThis.split("~")[0]
-        def gitSnapshotRevision = gitSnapshotThis.split("~")[1].split(":")[0]
-        def gitSnapshotInstance = gitSnapshotThis.split("~")[1].split(":")[2]
-        def gitBaselineRevision = gitSnapshotBaseline.split("~")[1].split(":")[0]
-        def gitBaselineInstance = gitSnapshotBaseline.split("~")[1].split(":")[2]
+        def gitSnapshotName = gitSnapshotThis.split(System.getenv("ccm_delim"))[0]
+        def gitSnapshotRevision = gitSnapshotThis.split(System.getenv("ccm_delim"))[1].split(":")[0]
+        def gitSnapshotInstance = gitSnapshotThis.split(System.getenv("ccm_delim"))[1].split(":")[2]
+        def gitBaselineRevision = gitSnapshotBaseline.split(System.getenv("ccm_delim"))[1].split(":")[0]
+        def gitBaselineInstance = gitSnapshotBaseline.split(System.getenv("ccm_delim"))[1].split(":")[2]
 
         def ccmSnapshotThis = snapshot.identifier.split("@@@")[2]
-        def ccmSnapshotName = ccmSnapshotThis.split("~")[0]
+        def ccmSnapshotName = ccmSnapshotThis.split(System.getenv("ccm_delim"))[0]
         def ccmSnapshotBaseline = snapshot.identifier.split("@@@")[3]
 
         def gitSnapshot_revision_for_ws=gitSnapshotThis.split(":")[0]
@@ -100,7 +99,7 @@ class CCMSource implements MigrationSource {
                 file_tmp.deleteDir()
             }
 
-            def file_full_path_spaced_name = new File ("${path_final}/" + ccmSnapshotThis.split('~')[0])
+            def file_full_path_spaced_name = new File ("${path_final}/" + ccmSnapshotThis.split(snapshot.ccm_delimiter)[0])
             if ( file_full_path_spaced_name.exists() ) {
                 log.info file_full_path_spaced_name.toString() + " exist due to previous error - Delete it all"
                 def file_base = new File (path_final)

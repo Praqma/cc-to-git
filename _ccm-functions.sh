@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-regex_ccm4part='^(.+)~(.+):(.+):(.+)$'
+ccm_delim=$(ccm delimiter)
+regex_ccm4part="^(.+)${ccm_delim}(.+):(.+):(.+)$"
 
 function byref_translate_from_ccm_name2git_repo() {
   if [[ -z ${1} ]]; then
@@ -171,7 +172,7 @@ function byref_translate_from_git_repo_4part2ccm_4part() {
   local _ccm_query_version=""
   byref_translate_from_git_tag2ccm_version_query "${_version}" _ccm_query_version
 
-  local _ccm_query_4name="$_ccm_query_name~$_ccm_query_version:$_type:$_instance"
+  local _ccm_query_4name="$_ccm_query_name-$_ccm_query_version:$_type:$_instance"
 
   local _query_result=""
   byref_translate_from_ccm_4part_query2ccm_4part "${_ccm_query_4name}" _query_result
@@ -205,7 +206,7 @@ function byref_translate_from_ccm_4part2git_repo_4part() {
   local _git_tag=""
   byref_translate_from_ccm_version2git_tag "${_version}" _git_tag
 
-  _toString="${_git_repo}~${_git_tag}:$_type:$_instance"
+  _toString="${_git_repo}-${_git_tag}:$_type:$_instance"
 
 }
 

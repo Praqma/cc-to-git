@@ -18,11 +18,11 @@ printf "Processing ${BASELINE_PROJECT}\n" 1>&2
 until [[ "${BASELINE_PROJECT:-}" == "" ]] ; do
 	this_project4part="${BASELINE_PROJECT}"
 
-	this_project_name=$(echo ${BASELINE_PROJECT} |  awk -F"~" '{print $1}')
+	this_project_name=$(echo ${BASELINE_PROJECT} |  awk -F"${ccm_delim}" '{print $1}')
 
 	query="is_baseline_project_of('${BASELINE_PROJECT}')"
 	BASELINE_PROJECT=$(ccm query "is_baseline_project_of('${BASELINE_PROJECT}')" -u -f "%objectname") || BASELINE_PROJECT=""
-	baseline_name=`printf "${BASELINE_PROJECT:-}" | awk -F"~" '{print $1}'`
+	baseline_name=`printf "${BASELINE_PROJECT:-}" | awk -F"${ccm_delim}" '{print $1}'`
 	if [[ "${baseline_name:-}" != "" && "${baseline_name}" != "${this_project_name}" ]]; then
 	  printf "Stop traversing - name changed: '${this_project_name}' -> '$baseline_name'\n\n" 1>&2
 	  printf "Get sucessors with '${this_project_name}' of baseline_project '${BASELINE_PROJECT}' (different name) as well\n\n" 1>&2
