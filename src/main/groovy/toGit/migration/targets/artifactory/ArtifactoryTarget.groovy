@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory
 import toGit.migration.targets.MigrationTarget
 import toGit.migration.targets.artifactory.actions.Publish
 
-import static org.jfrog.artifactory.client.ArtifactoryClientBuilder.create
+import static org.jfrog.artifactory.client.ArtifactoryClient.create
 
 class ArtifactoryTarget implements MigrationTarget {
 
@@ -34,13 +34,7 @@ class ArtifactoryTarget implements MigrationTarget {
     }
 
     Artifactory getClient() {
-        if (!client) {
-            client = create()
-                .setUrl(options.url)
-                .setUsername( options.user)
-                .setPassword( options.password)
-                .build();
-        }
+        if (!client) client = create(options.url, options.user, options.password)
         return client
     }
 }
