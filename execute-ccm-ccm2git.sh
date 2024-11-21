@@ -8,6 +8,41 @@ set -u
   echo "ERROR: ccm_db is not set"
   exit 1
 }
+if [[ "${groovy_script:-}" == "" ]]; then
+  echo "groovy_script must be set"
+  exit 1
+else
+  export groovy_script=$(pwd)/${groovy_script}
+  [[ -e ${groovy_script} ]] || { echo "ERROR: does not exist: $groovy_script" && exit 1; }
+fi 
+[[ "${git_user_name:-}" == "" ]] && { echo "ERROR: git_user_name env variable must be set. It is used for the committer and init commit author" && exit 1; }
+[[ "${git_user_email:-}" == "" ]] && { echo "ERROR: git_user_email env variable must be set. It is used for the committer and init commit author" && exit 1; }
+[[ "${git_email_domain:-}" == "" ]] && { echo "ERROR: git_email_domain env variable must be set. It is used for the author domain. The username part of email is retrieved from CM/Synergy" && exit 1; }
+[[ "${git_server_path:-}" == "" ]] && { echo "ERROR: git_server_path env variable must be set" && exit 1; }
+[[ "${jiraProjectKey:-}" == "" ]]  && { echo "ERROR: jiraProjectKey env variable must be set" && exit 1; }
+#[[ "${use_cached_project_list:-}" == "" ]] && { export use_cached_project_list="true" ; }
+echo "git_user_name=${git_user_name}"
+echo "git_user_email=${git_user_email}"
+echo "git_email_domain=${git_email_domain}"
+echo "git_server_path=${git_server_path}"
+echo "jiraProjectKey=${jiraProjectKey}"
+
+if [[ "${my_workspace_root:-}" == "" ]]; then 
+    echo "INFO: my_workspace_root is not set .. defaulting to $(pwd)" 
+    export my_workspace_root=$(pwd)
+else
+    echo "INFO: my_workspace_root=${my_workspace_root}" 
+fi
+if [[ -e $my_workspace_root ]] ; then 
+  if git -C $my_workspace_root rev-parse --git-dir 2> /dev/null ; then 
+    echo "git rev-parse --git-dir show that my_workspace_root=${my_workspace_root} is inside a repo - not supported"
+    echo "If you want to store it inside a Jenkins workspace then consider to checkout repo to a subdir and use \${WORKSPACE} as my_workspace_root" 
+    exit 1
+  else
+    echo "INFO: All good .. my_workspace_root = $my_workspace_root exists, but is not inside a git repo"
+  fi
+fi
+
 source "$(pwd)/${BASH_SOURCE%/*}/_ccm-start-stop-functions.sh" || source ./_ccm-start-stop-functions.sh 
 ccm-start ${ccm_db}
 source "$(pwd)/${BASH_SOURCE%/*}/_ccm-functions.sh" || source ./_ccm-functions.sh
@@ -46,32 +81,6 @@ fi
 export ccm_project_name_orig=""
 
 byref_translate_from_git_repo2ccm_name $ccm_project_name_wo_instance $ccm_project_instance ccm_project_name_orig
-
-if [[ "${groovy_script:-}" == "" ]]; then
-  echo "groovy_script must be set"
-  exit 1
-else
-  export groovy_script=$(pwd)/${groovy_script}
-  [[ -e ${groovy_script} ]] || { echo "ERROR: does not exist: $groovy_script" && exit 1; }
-fi 
-[[ "${git_server_path:-}" == "" ]] && { echo "git_server_path must be set" && exit 1; }
-[[ "${jiraProjectKey:-}" == "" ]]  && { echo "jiraProjectKey must be set" && exit 1; }
-[[ "${use_cached_project_list:-}" == "" ]] && { export use_cached_project_list="true" ; }
-if [[ "${my_workspace_root:-}" == "" ]]; then 
-    echo "INFO: my_workspace_root is not set .. defaulting to $(pwd)" 
-    export my_workspace_root=$(pwd)
-else
-    echo "INFO: my_workspace_root=${my_workspace_root}" 
-fi
-if [[ -e $my_workspace_root ]] ; then 
-  if git -C $my_workspace_root rev-parse --git-dir 2> /dev/null ; then 
-    echo "git rev-parse --git-dir show that my_workspace_root=${my_workspace_root} is inside a repo - not supported"
-    echo "If you want to store it inside a Jenkins workspace then consider to checkout repo to a subdir and use \${WORKSPACE} as my_workspace_root" 
-    exit 1
-  else
-    echo "INFO: All good .. my_workspace_root = $my_workspace_root exists, but is not inside a git repo"
-  fi
-fi
 
 rm -rf git2git_params.env && touch git2git_params.env
 if [[ "${wipe_repo_before:-}" == "true" ]] ; then 

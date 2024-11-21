@@ -51,7 +51,7 @@ class GitUtil {
         }
         if (options.email) {
             callOrDie(path, "config", "user.email", options.email)
-            log.debug("Set git user.email to $options.user.")
+            log.debug("Set git user.email to $options.email.")
         }
         if (options.longPaths) {
             callOrDie(path, "config", "core.longpaths", "true")
