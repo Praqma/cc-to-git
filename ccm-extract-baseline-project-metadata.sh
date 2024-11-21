@@ -66,6 +66,9 @@ case ${ccm_current_db} in
         require_baseline_object="false"
         ;;
     *)
+        epic_level_header="Master Change Requests: (MCR)"
+        epic_level_release_attr="release"
+        epic_level_epic2story_relation="associatedImpl"
         story_level_header="Implementation Change Requests"
         story_level_release_attr="release"
         require_baseline_object="false"

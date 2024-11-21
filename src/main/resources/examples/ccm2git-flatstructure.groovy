@@ -9,7 +9,7 @@ final log = LoggerFactory.getLogger(this.class)
 if ( !System.getenv("ccm_delim") ){
     println "ccm_delim variable not set"
     System.exit(1)
-else {
+} else {
     println "ccm_delim: " + System.getenv("ccm_delim")
     ccm_delimiter = System.getenv("ccm_delim")
 }
@@ -67,6 +67,8 @@ if ( !System.getenv("CCM_HOME") ){
 }
 def system_path2 = System.getenv("PATH")
 
+
+
 def my_workspace
 if ( !my_workspace_root ) {
     my_workspace_root = "/data/Synergy/ccm2git-main"
@@ -123,6 +125,7 @@ migrate {
             criteria {
                 AlreadyConverted(target.workspace)
             }
+
             extractions {
                 baselineProperties(source.workspace, source.jiraProjectKey)
             }
@@ -151,7 +154,7 @@ migrate {
                 }
 
                 // Copy checked out into Git repository
-                copy("$source.workspace/code/\${gitSnapshotName}" + System.getenv("ccm_delim") + "\${gitSnapshotRevision}/\$gitSnapshotName", target.workspace)
+                copy("$source.workspace/code/\${gitSnapshotName}-\${gitSnapshotRevision}/\$gitSnapshotName", target.workspace)
 
                 custom {
                     log.info "First level files in: $target.workspace"
@@ -186,7 +189,7 @@ migrate {
                         }
                     }
 
-                    def email_domain = '@eficode.com'
+                    def email_domain = '@safrangroup.com'
                     def envVars = System.getenv().collect { k, v -> "$k=$v" }
                     envVars.add('GIT_COMMITTER_DATE=' + project.snapshot_commiter_date)
                     envVars.add('GIT_AUTHOR_DATE=' + project.snapshot_commiter_date)
@@ -259,7 +262,7 @@ migrate {
                     def cmd_line = "git tag -F ../tag_meta_data.txt " + project.gitSnapshotRevision + "_" + project.snapshot_status
                     log.info cmd_line
 
-                    def email_domain = '@eficode.com'
+                    def email_domain = '@safrangroup.com'
                     def envVars = System.getenv().collect { k, v -> "$k=$v" }
                     envVars.add('GIT_COMMITTER_DATE=' + project.snapshot_commiter_date)
                     envVars.add('GIT_AUTHOR_DATE=' + project.snapshot_commiter_date)
@@ -287,8 +290,8 @@ migrate {
                     }
                 }
 
-                cmd 'du -sBM .git > ../${gitSnapshotName}' + System.getenv("ccm_delim") + '${gitSnapshotRevision}@git_size.txt', target.workspace
-                cmd 'cat ../${gitSnapshotName}' + System.getenv("ccm_delim") + '${gitSnapshotRevision}@git_size.txt', target.workspace
+                cmd 'du -sBM .git > ../${gitSnapshotName}-${gitSnapshotRevision}@git_size.txt', target.workspace
+                cmd 'cat ../${gitSnapshotName}-${gitSnapshotRevision}@git_size.txt', target.workspace
 
             }
         }

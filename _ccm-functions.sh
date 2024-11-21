@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-ccm_delim=$(ccm delimiter)
-regex_ccm4part="^(.+)${ccm_delim}(.+):(.+):(.+)$"
+export regex_ccm4part="^(.+)${ccm_delim}(.+):(.+):(.+)$"
 
 function byref_translate_from_ccm_name2git_repo() {
   if [[ -z ${1} ]]; then
