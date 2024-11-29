@@ -4,22 +4,23 @@ apply plugin: 'maven-publish'
 
 repositories {
     mavenCentral()
-    jcenter()
     maven {
         url 'https://repo.jenkins-ci.org/public/'
     }
 }
 
 dependencies {
-    compile 'org.codehaus.groovy:groovy-all:2.4.4'
-    compile 'org.slf4j:slf4j-api:2.0.16'
-    compile 'org.slf4j:slf4j-simple:2.0.16'
-    compile('org.jfrog.artifactory.client:artifactory-java-client-services:2.19.1'){
+    implementation group: 'org.codehaus.groovy', name: 'groovy-all', version: '3.0.23', ext: 'pom'
+    implementation 'org.slf4j:slf4j-api:2.0.16'
+    implementation 'org.slf4j:slf4j-simple:2.0.16'
+    implementation('org.jfrog.artifactory.client:artifactory-java-client-services:2.19.1'){
         exclude group: 'org.codehaus.groovy'
     }
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'net.praqma:praqmajutils:1.0.0'
-    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+    implementation fileTree('libs') {
+        include '*.jar'
+    }
+    implementation 'net.praqma:praqmajutils:1.0.0'
+    testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
 }
 
 task functionalTest(type: Test) {
@@ -28,9 +29,10 @@ task functionalTest(type: Test) {
 }
 
 task uberjar(type: Jar) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     dependsOn('compileGroovy')
     from files(sourceSets.main.output.classesDirs)
-    from configurations.runtime.asFileTree.files.collect { zipTree(it) }
+    from configurations.runtimeClasspath.asFileTree.files.collect { zipTree(it) }
     manifest {
         attributes 'Main-Class': 'toGit.Run'
     }
@@ -40,4 +42,8 @@ mainClassName='toGit.Run'
 
 test {
     exclude 'toGit/functional/**'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
 }
