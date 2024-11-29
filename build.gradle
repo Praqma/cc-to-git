@@ -10,17 +10,17 @@ repositories {
 }
 
 dependencies {
-    implementation group: 'org.codehaus.groovy', name: 'groovy-all', version: '3.0.23', ext: 'pom'
+    implementation group: 'org.apache.groovy', name: 'groovy-all', version: '4.0.24'
     implementation 'org.slf4j:slf4j-api:2.0.16'
     implementation 'org.slf4j:slf4j-simple:2.0.16'
-    implementation('org.jfrog.artifactory.client:artifactory-java-client-services:2.19.1'){
+    implementation('org.jfrog.artifactory.client:artifactory-java-client-services:2.19.1') {
         exclude group: 'org.codehaus.groovy'
     }
     implementation fileTree('libs') {
         include '*.jar'
     }
     implementation 'net.praqma:praqmajutils:1.0.0'
-    testImplementation 'org.spockframework:spock-core:2.0-groovy-3.0'
+    testImplementation group: 'org.spockframework', name: 'spock-core', version: '2.3-groovy-4.0'
 }
 
 task functionalTest(type: Test) {
@@ -42,8 +42,4 @@ mainClassName='toGit.Run'
 
 test {
     exclude 'toGit/functional/**'
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
 }
